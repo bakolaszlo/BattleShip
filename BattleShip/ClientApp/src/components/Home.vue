@@ -1,6 +1,9 @@
 <template>
   <div class="hello">
     <h3>Battleship</h3>
+    <div>
+      <h3>Play now!</h3>
+    </div>
   </div>
 </template>
 
