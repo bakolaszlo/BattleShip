@@ -1,15 +1,15 @@
 <template>
-  <nav-menu></nav-menu>
+  <header-vue></header-vue>
   <router-view />
 </template>
 
-<script>
-import NavMenu from "./components/NavMenu.vue";
+<script></script>
+import HeaderVue from "./components/Header.vue";
 
 export default {
   name: "App",
   components: {
-    NavMenu,
+    HeaderVue,
   },
 };
 </script>
