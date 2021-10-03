@@ -20,25 +20,32 @@
 
     <div class="enemy-container">
       <div>Enemy board</div>
-      <div class="grid grid-enemy" ref="enemygrid"></div>
+      <div class="grid grid-enemy" ref="enemygrid">
+        <div
+          v-for="(n, index) in 100"
+          :key="n"
+          @click="attackEnemy(index)"
+          :id="(n - 1).toString()"
+        >
+          <div v-if="enemySquares[index]" :class="enemySquares[index]"></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="hidden-info">
-    <button class="start">Start game</button>
+    <button class="start" v-if="letShipsToSelectFrom.length == 0">
+      I'm Ready
+    </button>
     <button class="rotate" @click="rotateShip">Rotate</button>
-    <h3 class="whose-go">Your go</h3>
-    <h3 class="info"></h3>
+    <h3 class="info">{{ message }}</h3>
   </div>
   <div class="grid-display">
     Your ships:
     <div
       v-for="ship in letShipsToSelectFrom"
       :key="ship"
-      :class="'ship ' + ship.name + '-container'"
-      draggable="true"
-      :ondragstart="dragStartShip"
-      :onmousedown="helperFunction"
+      :class="'ship ' + ship.name + '-container ' + ship.isSelected"
       @click="selectShip(ship)"
     >
       <div
@@ -61,6 +68,7 @@ export default {
           rotation: 1,
           isInGrid: false,
           shipIndex: 0,
+          isSelected: false,
         },
         {
           name: "submarine",
@@ -68,6 +76,7 @@ export default {
           rotation: 1,
           isInGrid: false,
           shipIndex: 1,
+          isSelected: false,
         },
         {
           name: "cruiser",
@@ -75,6 +84,7 @@ export default {
           rotation: 1,
           isInGrid: false,
           shipIndex: 2,
+          isSelected: false,
         },
         {
           name: "battleship",
@@ -82,6 +92,7 @@ export default {
           rotation: 1,
           isInGrid: false,
           shipIndex: 3,
+          isSelected: false,
         },
         {
           name: "carrier",
@@ -89,6 +100,7 @@ export default {
           rotation: 1,
           isInGrid: false,
           shipIndex: 4,
+          isSelected: false,
         },
       ],
       width: 10,
@@ -97,6 +109,7 @@ export default {
       isShipSelected: false,
       selectedShip: null,
       selectedShipIndex: null,
+      message: "",
     };
   },
   computed: {
@@ -106,29 +119,35 @@ export default {
   },
   mounted() {
     this.setDirectionsForShips();
-    this.createBoard(this.$refs.enemygrid, this.enemySquares);
-    this.ships.forEach((ship) => {
-      this.generateRandomShipPosition(ship);
-    });
   },
   methods: {
+    attackEnemy(index) {
+      if (this.hitOn(index)) {
+        this.enemySquares[index] = "hit";
+      } else {
+        this.enemySquares[index] = "miss";
+      }
+    },
+    hitOn(index) {
+      console.log(index);
+      if (Math.random() > 0.5) {
+        return true;
+      }
+      return false;
+    },
     removeFromGrid(clickedIndex) {
-      console.log("clicked index", clickedIndex);
       let startPoint = this.userSquares[clickedIndex].start;
-      console.log(startPoint, "startpoint");
-      console.log(this.userSquares[clickedIndex].next, "next");
       let index = startPoint;
       let shipIndex = this.userSquares[startPoint].shipIndex;
-      try {
-        while (this.userSquares[index].next) {
-          let nextIndex = this.userSquares[index].next;
-          this.userSquares[index] = null;
-          index = nextIndex;
-        }
-      } catch {
-        this.ships[shipIndex].isInGrid = false;
-        this.ships[shipIndex].rotation = 1;
+      let nextIndex = this.userSquares[index].next;
+      while (this.userSquares[index].next) {
+        nextIndex = this.userSquares[index].next;
+        this.userSquares[index] = null;
+        index = nextIndex;
       }
+      this.userSquares[nextIndex] = null;
+      this.ships[shipIndex].isInGrid = false;
+      this.ships[shipIndex].rotation = 1;
     },
     rotateShip() {
       if (!this.isShipSelected) {
@@ -144,6 +163,16 @@ export default {
       this.selectedShip = ship;
       this.isShipSelected = true;
       this.selectedShipIndex = ship.shipIndex;
+      this.setSelectedShip();
+    },
+    setSelectedShip() {
+      this.ships.forEach((ship) => {
+        if (ship.shipIndex == this.selectedShipIndex) {
+          ship.isSelected = "selected";
+        } else {
+          ship.isSelected = null;
+        }
+      });
     },
     putShip(index) {
       if (!this.isShipSelected) {
@@ -151,23 +180,27 @@ export default {
       }
       let isOverTheGrid = this.selectedShip.shipLength + index > 100;
       if (isOverTheGrid) {
-        console.log(isOverTheGrid, "Is over grid");
+        this.message =
+          "Can't place the ship over there. It would go past grid.";
         return;
       }
       let isHorizontal = this.selectedShip.rotation == 1;
       let isAtRightEdge = this.selectedShip.shipLength + (index % 10) > 10;
       if (isAtRightEdge && isHorizontal) {
-        console.log(isAtRightEdge, "Is at right edge");
+        this.message =
+          "Can't place the ship over there. It would go past grid.";
         return;
       }
       let isBottom = this.selectedShip.shipLength * 10 + index > 110;
       if (isBottom && !isHorizontal) {
-        console.log("Ship long", this.selectedShip.shipLength * 10 + index);
+        this.message =
+          "Can't place the ship over there. It would go past grid.";
         return;
       }
       if (!this.userSquares[index]) {
         for (let i = 0; i < this.selectedShip.shipLength; ++i) {
           if (this.userSquares[index + i * this.selectedShip.rotation]) {
+            this.message = "The space is already occupied.";
             return;
           }
         }
@@ -181,7 +214,7 @@ export default {
           this.userSquares[
             index + i * this.selectedShip.rotation
           ].start = index;
-          if (i < this.selectedShip.shipLength) {
+          if (i + 1 < this.selectedShip.shipLength) {
             this.userSquares[index + i * this.selectedShip.rotation].next =
               index + (i + 1) * this.selectedShip.rotation;
           }
@@ -192,51 +225,7 @@ export default {
       this.ships[this.selectedShipIndex].isInGrid = true;
       this.isShipSelected = false;
     },
-    helperFunction(e) {
-      this.selectedShipNameWithIndex = e.target.id;
-      console.log(this.selectedShipNameWithIndex);
-    },
-    dragStartShip(e) {
-      this.draggedShip = e.target;
-      this.draggedShipLength = this.draggedShip.childNodes.length;
-      console.log(this.draggedShip);
-    },
-    dragStart(e) {
-      console.log(e.target);
-    },
-    dragOver(e) {
-      e.preventDefault();
-    },
-    dragEnter(e) {
-      e.preventDefault();
-    },
-    dragLeave(e) {
-      e.preventDefault();
-    },
-    dragDrop() {
-      let shipNameWithLastId = this.draggedShip.lastElementChild.id;
-      let shipClass = shipNameWithLastId.slice(0, -2);
-      console.log(shipClass);
-    },
-    dragEnd(e) {
-      console.log(e.target);
-    },
-    createBoard(grid, squares) {
-      for (let i = 0; i < this.width * this.width; ++i) {
-        const square = document.createElement("div");
-        square.dataset.id = i;
-        if (grid === this.$refs.usergrid) {
-          square.ondragstart = this.dragStart;
-          square.ondragover = this.dragOver;
-          square.ondragenter = this.dragEnter;
-          square.ondragleave = this.dragLeave;
-          square.ondrop = this.dragDrop;
-          square.ondragend = this.dragEnd;
-        }
-        grid.appendChild(square);
-        squares.push(square);
-      }
-    },
+
     setDirectionsForShips() {
       this.ships.forEach((ship) => {
         let xAxis = [];
@@ -250,71 +239,37 @@ export default {
         ship.directions.push(yAxis);
       });
     },
-    generateRandomShipPosition(ship) {
-      let randomDirection = Math.floor(Math.random() * 2);
-      let current = ship.directions[randomDirection];
-
-      let direction;
-      if (randomDirection === 0) {
-        direction = 1;
-      } else {
-        direction = 10;
-      }
-      let randomStart = Math.abs(
-        Math.floor(Math.random() * 100 - ship.directions[0].length * direction)
-      );
-
-      const isTaken = current.some((index) =>
-        this.enemySquares[randomStart + index].classList.contains("taken")
-      );
-      const isAtRightEdge = current.some(
-        (index) => (randomStart + index) % this.width === this.width - 1
-      );
-      const isAtLeftEdge = current.some(
-        (index) => (randomStart + index) % this.width === 0
-      );
-
-      if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
-        current.forEach((index) => {
-          this.enemySquares[randomStart + index].classList.add(
-            "taken",
-            ship.name
-          );
-        });
-      } else {
-        this.generateRandomShipPosition(ship);
-      }
-    },
   },
 };
 </script>
 
 <style>
-.grid-user {
-  width: 400px;
-  height: 400px;
-  display: flex;
-  flex-wrap: wrap;
-  background-color: blue;
-  margin: 20px;
-}
-
 .grid div {
-  width: 40px;
-  height: 40px;
+  border: 1px solid hsla(0, 0%, 100%, 0.2);
 }
 
-.grid-enemy {
-  width: 400px;
-  height: 400px;
-  display: flex;
-  flex-wrap: wrap;
-  background-color: lightgreen;
-  margin: 20px;
+.grid {
+  margin: 2vmin;
+  display: grid;
+  background-color: hsl(200, 100%, 50%);
+  grid-template-rows: repeat(10, 4.6vmin);
+  grid-template-columns: repeat(10, 4.6vmin);
+}
+
+.hit {
+  background-color: red;
+  height: stretch;
+}
+
+.miss {
+  background-color: gray;
+  height: stretch;
 }
 
 .container {
   display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .grid-display {
@@ -330,6 +285,18 @@ export default {
   background-color: orange;
   margin: 10px;
   display: flex;
+  border-radius: 20px;
+}
+
+.taken {
+  width: stretch;
+  height: stretch;
+}
+
+#selected {
+  width: 40px;
+  height: 40px;
+  color: black;
 }
 
 .submarine-container {
@@ -338,6 +305,7 @@ export default {
   background-color: pink;
   margin: 10px;
   display: flex;
+  border-radius: 20px;
 }
 
 .cruiser-container {
@@ -346,6 +314,7 @@ export default {
   background-color: purple;
   margin: 10px;
   display: flex;
+  border-radius: 20px;
 }
 
 .battleship-container {
@@ -354,6 +323,7 @@ export default {
   background-color: aqua;
   margin: 10px;
   display: flex;
+  border-radius: 20px;
 }
 
 .carrier-container {
@@ -362,6 +332,7 @@ export default {
   background-color: green;
   margin: 10px;
   display: flex;
+  border-radius: 20px;
 }
 
 .ship div {
@@ -387,5 +358,9 @@ export default {
 
 .carrier {
   background-color: green;
+}
+
+.selected {
+  border: 3px solid red;
 }
 </style>
