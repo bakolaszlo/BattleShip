@@ -9,6 +9,7 @@ namespace BattleShip.Models
     {
         public int Id { get; set; }
 
+        public int LobbyId { set; get; }
         public Player Host { get; set; }
 
         public Player Guest { get; set; }

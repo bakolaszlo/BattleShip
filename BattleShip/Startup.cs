@@ -72,7 +72,7 @@ namespace BattleShip
                 endpoints.MapHub<MessageHub>("/messagehub");
             });
 
-            /*app.UseSpa(spa =>
+            app.UseSpa(spa =>
             {
                 if (env.IsDevelopment())
                     spa.Options.SourcePath = "ClientApp/";
@@ -84,7 +84,7 @@ namespace BattleShip
                     spa.UseVueCli(npmScript: "serve");
                 }
 
-            });*/
+            });
         }
     }
 }

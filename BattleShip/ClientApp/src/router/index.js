@@ -21,7 +21,7 @@ const routes = [
     component: Register,
   },
   {
-    path: "/battleship",
+    path: "/battleship/:lobby_id",
     name: "Battleship",
     component: Battleship,
   },

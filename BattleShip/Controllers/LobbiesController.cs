@@ -24,7 +24,7 @@ namespace BattleShip.Controllers
         {
             _context = context;
             this.hubContext = hubContext;
-            
+
         }
 
         // GET: api/Lobbies
@@ -54,17 +54,26 @@ namespace BattleShip.Controllers
         public async Task<IActionResult> PutLobby(int id, [FromBody] Lobby lobby)
         {
             var existingLobby = await _context.Lobby.FindAsync(id);
-            if(existingLobby == null)
+            if (existingLobby == null)
+            {
+                return BadRequest("There is no lobby with this id.");
+            }
+            if (existingLobby.Guest != null)
             {
                 return BadRequest("There is no lobby with this id.");
             }
             existingLobby.Guest = lobby.Guest;
-            
+
             _context.Entry(existingLobby).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();//emmit
+                var player = await _context.Player.FindAsync(lobby.Guest);
+                if (player != null)
+                {
+                    await hubContext.Clients.All.SendAsync("userJoinedLobby", existingLobby.Id, player.Nickname);
+                }
             }
             catch (DbUpdateConcurrencyException)
             {

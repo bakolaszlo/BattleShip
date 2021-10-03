@@ -1,4 +1,7 @@
 <template>
+  <div v-if="!modalLobbyId">
+    <WaitModal />
+  </div>
   <div class="container">
     <div class="player-container">
       <div>Your board</div>
@@ -58,7 +61,10 @@
 </template>
 
 <script>
+import WaitModal from "./WaitModal.vue";
+import * as signalR from "@aspnet/signalr";
 export default {
+  components: { WaitModal },
   data() {
     return {
       ships: [
@@ -110,6 +116,8 @@ export default {
       selectedShip: null,
       selectedShipIndex: null,
       message: "",
+      modalLobbyId: null,
+      guestName: null,
     };
   },
   computed: {
@@ -119,8 +127,45 @@ export default {
   },
   mounted() {
     this.setDirectionsForShips();
+    var connection = new signalR.HubConnectionBuilder()
+      .withUrl("/messagehub")
+      .build();
+
+    connection
+      .start()
+      .then(function() {
+        console.log("Connection established..");
+      })
+      .catch(function(err) {
+        return console.error(err.toString());
+      });
+    connection.on("userJoinedLobby", (modalLobbyId, joinerNickname) => {
+      this.modalLobbyId = modalLobbyId;
+      this.guestName = joinerNickname;
+      console.log(this.modalLobbyId);
+    });
+    this.isGuest();
   },
   methods: {
+    isGuest() {
+      var axios = require("axios");
+
+      var config = {
+        method: "get",
+        url: "/api/lobbies/" + this.$route.params.lobby_id,
+        headers: {},
+      };
+
+      axios(config)
+        .then((response) => {
+          if (!response.data.isOver && response.data.guest) {
+            this.modalLobbyId = this.$route.params.lobby_id;
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
     attackEnemy(index) {
       if (this.hitOn(index)) {
         this.enemySquares[index] = "hit";

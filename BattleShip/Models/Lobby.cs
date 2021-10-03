@@ -8,7 +8,10 @@ namespace BattleShip.Models
     public class Lobby
     {
         public int Id { set;get; }
+
         public int Host { set; get; }
         public int? Guest { set; get; }
+
+        public bool IsOver { set; get; }
     }
 }

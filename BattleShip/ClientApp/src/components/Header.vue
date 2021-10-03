@@ -30,7 +30,7 @@
   </header>
 </template>
 
-<style>
+<style scoped>
 a.navbar-brand {
   white-space: normal;
   text-align: center;
