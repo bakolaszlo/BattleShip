@@ -14,5 +14,6 @@ namespace BattleShip.Data
         {
         }
         public DbSet<BattleShip.Models.Player> Player { get; set; }
+        public DbSet<BattleShip.Models.Match> Match { get; set; }
     }
 }
