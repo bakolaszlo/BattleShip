@@ -7,8 +7,8 @@ namespace BattleShip.Models
 {
     public class Lobby
     {
-        public int Id { set; get; }
-        public Player Host { set; get; }
-        public Player? Guest { set; get; }
+        public int Id { set;get; }
+        public int Host { set; get; }
+        public int? Guest { set; get; }
     }
 }

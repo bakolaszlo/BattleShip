@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BattleShip.Data;
 using BattleShip.Models;
+using BattleShip.SignalR;
+using Microsoft.AspNetCore.SignalR;
 
 namespace BattleShip.Controllers
 {
@@ -16,9 +18,13 @@ namespace BattleShip.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public LobbiesController(ApplicationDbContext context)
+        private readonly IHubContext<MessageHub> hubContext;
+
+        public LobbiesController(ApplicationDbContext context, IHubContext<MessageHub> hubContext)
         {
             _context = context;
+            this.hubContext = hubContext;
+            
         }
 
         // GET: api/Lobbies
@@ -45,14 +51,16 @@ namespace BattleShip.Controllers
         // PUT: api/Lobbies/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutLobby(int id, Lobby lobby)
+        public async Task<IActionResult> PutLobby(int id, [FromBody] Lobby lobby)
         {
-            if (id != lobby.Id)
+            var existingLobby = await _context.Lobby.FindAsync(id);
+            if(existingLobby == null)
             {
-                return BadRequest();
+                return BadRequest("There is no lobby with this id.");
             }
-
-            _context.Entry(lobby).State = EntityState.Modified;
+            existingLobby.Guest = lobby.Guest;
+            
+            _context.Entry(existingLobby).State = EntityState.Modified;
 
             try
             {
@@ -70,7 +78,8 @@ namespace BattleShip.Controllers
                 }
             }
 
-            return NoContent();
+            await hubContext.Clients.All.SendAsync("LobbyResponse", "LobbyAccepted");
+            return Ok("Joined to lobby.");
         }
 
         // POST: api/Lobbies

@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VueCliMiddleware;
 using BattleShip.Data;
+using BattleShip.SignalR;
 
 namespace BattleShip
 {
@@ -41,6 +42,8 @@ namespace BattleShip
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,9 +65,11 @@ namespace BattleShip
             app.UseSpaStaticFiles();
             app.UseAuthorization();
 
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<MessageHub>("/messagehub");
             });
 
             /*app.UseSpa(spa =>
