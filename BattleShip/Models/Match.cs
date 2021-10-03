@@ -17,6 +17,6 @@ namespace BattleShip.Models
 
         public string GuestBoard { get; set; }
 
-        public bool isHostTurn { get; set; }
+        public bool IsHostTurn { get; set; }
     }
 }
