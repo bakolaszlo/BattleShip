@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BattleShip.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20211002131617_InitialM")]
-    partial class InitialM
+    [Migration("20211003165736_LobbyMigration")]
+    partial class LobbyMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,59 @@ namespace BattleShip.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
                 .HasAnnotation("ProductVersion", "5.0.10")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+            modelBuilder.Entity("BattleShip.Models.Lobby", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int?>("GuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("HostId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuestId");
+
+                    b.HasIndex("HostId");
+
+                    b.ToTable("Lobby");
+                });
+
+            modelBuilder.Entity("BattleShip.Models.Match", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("GuestBoard")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("GuestId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HostBoard")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("HostId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsHostTurn")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuestId");
+
+                    b.HasIndex("HostId");
+
+                    b.ToTable("Match");
+                });
 
             modelBuilder.Entity("BattleShip.Models.Player", b =>
                 {
@@ -232,6 +285,36 @@ namespace BattleShip.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("BattleShip.Models.Lobby", b =>
+                {
+                    b.HasOne("BattleShip.Models.Player", "Guest")
+                        .WithMany()
+                        .HasForeignKey("GuestId");
+
+                    b.HasOne("BattleShip.Models.Player", "Host")
+                        .WithMany()
+                        .HasForeignKey("HostId");
+
+                    b.Navigation("Guest");
+
+                    b.Navigation("Host");
+                });
+
+            modelBuilder.Entity("BattleShip.Models.Match", b =>
+                {
+                    b.HasOne("BattleShip.Models.Player", "Guest")
+                        .WithMany()
+                        .HasForeignKey("GuestId");
+
+                    b.HasOne("BattleShip.Models.Player", "Host")
+                        .WithMany()
+                        .HasForeignKey("HostId");
+
+                    b.Navigation("Guest");
+
+                    b.Navigation("Host");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

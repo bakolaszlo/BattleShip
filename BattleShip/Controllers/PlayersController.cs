@@ -10,7 +10,9 @@ using BattleShip.Models;
 
 namespace BattleShip.Controllers
 {
-    public class PlayersController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class PlayersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
@@ -22,7 +24,7 @@ namespace BattleShip.Controllers
         // GET: Players
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Player.ToListAsync());
+            return Ok(await _context.Player.ToListAsync());
         }
 
         // GET: Players/Details/5
@@ -40,32 +42,22 @@ namespace BattleShip.Controllers
                 return NotFound();
             }
 
-            return View(player);
+            return Ok(player);
         }
 
-        // GET: Players/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Players/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nickname")] Player player)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(player);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return Ok(player.Id);
             }
-            return View(player);
+            return BadRequest("Failed to create the player");
         }
 
-        // GET: Players/Edit/5
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -78,14 +70,10 @@ namespace BattleShip.Controllers
             {
                 return NotFound();
             }
-            return View(player);
+            return Ok(player);
         }
 
-        // POST: Players/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPut]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nickname")] Player player)
         {
             if (id != player.Id)
@@ -113,36 +101,17 @@ namespace BattleShip.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(player);
+            return Ok(player);
         }
 
-        // GET: Players/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var player = await _context.Player
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (player == null)
-            {
-                return NotFound();
-            }
-
-            return View(player);
-        }
-
-        // POST: Players/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [HttpDelete]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var player = await _context.Player.FindAsync(id);
             _context.Player.Remove(player);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return Ok();
         }
 
         private bool PlayerExists(int id)

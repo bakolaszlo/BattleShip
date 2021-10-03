@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BattleShip.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20211003160341_MatchesMigrations")]
-    partial class MatchesMigrations
+    [Migration("20211003165333_InitialMigrations")]
+    partial class InitialMigrations
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
