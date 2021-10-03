@@ -2,6 +2,7 @@
 import Home from "@/components/Home.vue";
 import Login from "@/components/Auth/Login.vue";
 import Register from "@/components/Auth/Register.vue";
+import Battleship from "@/components/Battleship.vue";
 
 const routes = [
   {
@@ -18,6 +19,11 @@ const routes = [
     path: "/Register",
     name: "Register",
     component: Register,
+  },
+  {
+    path: "/battleship",
+    name: "Battleship",
+    component: Battleship,
   },
 ];
 
