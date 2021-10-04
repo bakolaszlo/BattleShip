@@ -1,6 +1,5 @@
 build:
   docker:
-    release:
-       dockerfile: BattleShip/Dockerfile
-       target: builder
-    web: BattleShip/Dockerfile
+       web: BattleShip/Dockerfile
+run:
+  web: bundle exec puma -C config/puma.rb
