@@ -447,7 +447,7 @@ export default {
           "Can't place the ship over there. It would go past grid.";
         return;
       }
-      let isBottom = this.selectedShip.shipLength * 10 + index > 110;
+      let isBottom = this.selectedShip.shipLength * 10 + index > 109;
       if (isBottom && !isHorizontal) {
         this.message =
           "Can't place the ship over there. It would go past grid.";
