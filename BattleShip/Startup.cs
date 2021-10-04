@@ -105,7 +105,7 @@ namespace BattleShip
 
         private string GetConnectionString()
         {
-            var connectionString = "postgres://pqedpuvngoevab:09860524e6fe212fdd709cb848547e90917d99b4242acdaad5e0faef1eb737e2@ec2-54-155-92-75.eu-west-1.compute.amazonaws.com:5432/d5pa19do74d87f";
+            var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
             if (connectionString != null)
             {
                 return ConvertConnectionString(connectionString);
