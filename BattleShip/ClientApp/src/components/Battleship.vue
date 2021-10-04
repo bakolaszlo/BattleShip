@@ -1,6 +1,9 @@
 <template>
-  <div v-if="!modalLobbyId">
+  <div v-if="!modalLobbyId && !isGameOverB">
     <WaitModal />
+  </div>
+  <div v-if="isGameOverB">
+    <GameOverModal />
   </div>
   <div class="container">
     <div class="player-container">
@@ -46,9 +49,9 @@
       I'm Ready
     </button>
     <button class="rotate" @click="rotateShip">Rotate</button>
-    <h3 class="info">{{ message }}</h3>
   </div>
-  <div v-if="canGameStart">
+  <h3 class="info">{{ message }}</h3>
+  <div v-if="canGameStart && !isGameWon">
     <div v-if="(isHost && isHostTurn) || (!isHost && !isHostTurn)">
       It's your turn!
     </div>
@@ -73,9 +76,10 @@
 
 <script>
 import WaitModal from "./WaitModal.vue";
+import GameOverModal from "./GameOverModal.vue";
 import * as signalR from "@aspnet/signalr";
 export default {
-  components: { WaitModal },
+  components: { WaitModal, GameOverModal },
   data() {
     return {
       ships: [
@@ -134,6 +138,8 @@ export default {
       isHostTurn: true,
       opponentName: "opponent",
       isReadyDisabled: false,
+      isGameWon: false,
+      isGameOverB: false,
     };
   },
   computed: {
@@ -225,8 +231,10 @@ export default {
       }
       if (window.localStorage.getItem("playerId") == whoWon) {
         this.message = "You are winner !";
+        this.isGameWon = true;
       } else {
         this.message = "Your opponent has won!";
+        this.isGameWon = true;
       }
       this.canGameStart = false;
     });
@@ -236,9 +244,28 @@ export default {
       if (playerId == host) this.canGameStart = true;
       if (playerId == guest) this.canGameStart = true;
     });
+    this.isGameOver();
     this.isGuest();
   },
   methods: {
+    isGameOver() {
+      var axios = require("axios");
+
+      var config = {
+        method: "get",
+        url: "/api/lobbies/" + this.$route.params.lobby_id,
+      };
+
+      axios(config)
+        .then((response) => {
+          if (response.data.isOver) {
+            this.isGameOverB = true;
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
     registerMatch() {
       if (this.isHost) {
         this.registerHost();
@@ -355,6 +382,9 @@ export default {
     attackEnemy(index) {
       if (!this.canGameStart) {
         this.message = "The game is not started yet.";
+        return;
+      }
+      if (this.isGameWon) {
         return;
       }
       if (this.isHostTurn && this.isHost) {

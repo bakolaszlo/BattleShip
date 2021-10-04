@@ -4,7 +4,7 @@
       <p>Enter lobby id</p>
       <input v-model="lobbyId" />
       <p>Enter your Nickname:</p>
-      <input type="text" v-model="nickname" />
+      <input type="text" v-model="nickname" required />
       <button @click="createPlayer">Start Game</button>
     </div>
   </div>

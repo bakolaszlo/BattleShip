@@ -157,6 +157,12 @@ namespace BattleShip.Controllers
             if(originalMatch.GuestHp == 0)
             {
                 hubContext.Clients.All.SendAsync("winner", originalMatch.LobbyId, originalMatch.HostId);
+                var lobby = _context.Lobby.First(x => x.Guest == originalMatch.GuestId && x.Host == originalMatch.HostId);
+                if(lobby != null)
+                {
+                    lobby.IsOver = true;
+                }
+                _context.Entry(lobby).State = EntityState.Modified;
             }
             if(originalMatch.HostHp == 0)
             {

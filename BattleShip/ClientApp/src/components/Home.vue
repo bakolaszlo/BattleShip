@@ -12,12 +12,12 @@
       <div class="container">
         <li class="nav-item">
           <button class="nav-link text-dark" @click="toggleModal">
-            Create Game.
+            Create Game
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link text-dark" @click="toggleJoinModal">
-            Join Game.
+            Join Game
           </button>
         </li>
       </div>
