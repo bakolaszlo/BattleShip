@@ -10,14 +10,17 @@ namespace BattleShip.Models
         public int Id { get; set; }
 
         public int LobbyId { set; get; }
-        public Player Host { get; set; }
+        public int HostHp { set; get; }
+        public int GuestHp { set; get; }
+        public int HostId { get; set; }
 
-        public Player Guest { get; set; }
+        public int GuestId { get; set; }
 
         public string HostBoard { get; set; }
 
         public string GuestBoard { get; set; }
 
         public bool IsHostTurn { get; set; }
+
     }
 }

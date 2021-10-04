@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using VueCliMiddleware;
 using BattleShip.Data;
 using BattleShip.SignalR;
+using System.Diagnostics;
 
 namespace BattleShip
 {
@@ -38,12 +39,27 @@ namespace BattleShip
             });
 			services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(
-                    Configuration.GetConnectionString("LocalDB")));
+                    GetConnectionString()));
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddSignalR();
+
+            if (Debugger.IsAttached)
+            {
+                services.AddSpaStaticFiles(configuration =>
+                {
+                    configuration.RootPath = "ClientApp";
+                });
+            }
+            else
+            {
+                services.AddSpaStaticFiles(configuration =>
+                {
+                    configuration.RootPath = "ClientApp/dist";
+                });
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -85,6 +101,26 @@ namespace BattleShip
                 }
 
             });
+        }
+
+        private string GetConnectionString()
+        {
+            var connectionString = "postgres://pqedpuvngoevab:09860524e6fe212fdd709cb848547e90917d99b4242acdaad5e0faef1eb737e2@ec2-54-155-92-75.eu-west-1.compute.amazonaws.com:5432/d5pa19do74d87f";
+            if (connectionString != null)
+            {
+                return ConvertConnectionString(connectionString);
+            }
+
+            return Configuration.GetConnectionString("LocalDB");
+        }
+
+        private string ConvertConnectionString(string connectionString)
+        {
+            Uri uri = new(connectionString);
+            string userId = uri.UserInfo.Split(':')[0];
+            string password = uri.UserInfo.Split(':')[1];
+            string database = uri.AbsolutePath.TrimStart('/');
+            return $"Database={database}; Host={uri.Host}; Port={uri.Port}; User Id={userId}; Password={password}; SSL Mode=Require;Trust Server Certificate=true";
         }
     }
 }

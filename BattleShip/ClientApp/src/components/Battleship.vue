@@ -37,11 +37,21 @@
   </div>
 
   <div class="hidden-info">
-    <button class="start" v-if="letShipsToSelectFrom.length == 0">
+    <button
+      class="start"
+      v-if="letShipsToSelectFrom.length == 0"
+      @click="registerMatch"
+    >
       I'm Ready
     </button>
     <button class="rotate" @click="rotateShip">Rotate</button>
     <h3 class="info">{{ message }}</h3>
+  </div>
+  <div v-if="canGameStart">
+    <div v-if="(isHost && isHostTurn) || (!isHost && !isHostTurn)">
+      It's your turn!
+    </div>
+    <div v-else>It's {{ opponentName }} turn!</div>
   </div>
   <div class="grid-display">
     Your ships:
@@ -118,6 +128,10 @@ export default {
       message: "",
       modalLobbyId: null,
       guestName: null,
+      isHost: false,
+      canGameStart: false,
+      isHostTurn: true,
+      opponentName: "opponent",
     };
   },
   computed: {
@@ -140,13 +154,163 @@ export default {
         return console.error(err.toString());
       });
     connection.on("userJoinedLobby", (modalLobbyId, joinerNickname) => {
+      if (modalLobbyId != this.$route.params.lobby_id) {
+        return;
+      }
       this.modalLobbyId = modalLobbyId;
-      this.guestName = joinerNickname;
-      console.log(this.modalLobbyId);
+      this.opponentName = joinerNickname;
+      this.isHost = true;
+    });
+    connection.on("hostHitOn", (lobbyId, index) => {
+      if (lobbyId != this.$route.params.lobby_id) {
+        return;
+      }
+      if (this.isHost) {
+        this.enemySquares[index] = "hit";
+      } else {
+        this.userSquares[index] = {};
+        this.userSquares[index].shipName = "hit";
+      }
+      this.isHostTurn = !this.isHostTurn;
+      console.log("hostHitOn", this.isHostTurn);
+    });
+
+    connection.on("hostAttackedOn", (lobbyId, index) => {
+      if (lobbyId != this.$route.params.lobby_id) {
+        return;
+      }
+      if (this.isHost) {
+        this.enemySquares[index] = "miss";
+      } else {
+        this.userSquares[index] = {};
+        this.userSquares[index].shipName = "miss";
+      }
+      this.isHostTurn = !this.isHostTurn;
+      console.log("hostAttackedOn", this.isHostTurn);
+    });
+
+    connection.on("guestHitOn", (lobbyId, index) => {
+      if (lobbyId != this.$route.params.lobby_id) {
+        return;
+      }
+      if (!this.isHost) {
+        this.enemySquares[index] = "hit";
+      } else {
+        this.userSquares[index] = {};
+        this.userSquares[index].shipName = "hit";
+      }
+      this.isHostTurn = !this.isHostTurn;
+      console.log("guestHitOn", this.isHostTurn);
+    });
+
+    connection.on("guestAttackedOn", (lobbyId, index) => {
+      if (lobbyId != this.$route.params.lobby_id) {
+        return;
+      }
+      if (!this.isHost) {
+        this.enemySquares[index] = "miss";
+      } else {
+        this.userSquares[index] = {};
+        this.userSquares[index].shipName = "miss";
+      }
+      this.isHostTurn = !this.isHostTurn;
+      console.log("guestAttackedOn", this.isHostTurn);
+    });
+
+    connection.on("winner", (lobbyId, whoWon) => {
+      if (lobbyId != this.$route.params.lobby_id) {
+        return;
+      }
+      if (window.localStorage.getItem("playerId") == whoWon) {
+        this.message = "You are winner !";
+      } else {
+        this.message = "Your opponent has won!";
+      }
+      this.canGameStart = false;
+    });
+
+    connection.on("bothPlayersAreReady", (host, guest) => {
+      let playerId = window.localStorage.getItem("playerId");
+      if (playerId == host) this.canGameStart = true;
+      if (playerId == guest) this.canGameStart = true;
     });
     this.isGuest();
   },
   methods: {
+    registerMatch() {
+      if (this.isHost) {
+        this.registerHost();
+      } else {
+        this.registerGuest();
+      }
+    },
+    registerGuest() {
+      let boardString = "";
+      for (let i = 0; i < this.width * this.width; ++i) {
+        if (this.userSquares[i]) {
+          boardString += this.userSquares[i].shipIndex;
+        } else {
+          boardString += "w";
+        }
+      }
+      var axios = require("axios");
+      var data = JSON.stringify({
+        LobbyId: this.$route.params.lobby_id,
+        GuestId: window.localStorage.getItem("playerId"),
+        GuestBoard: boardString,
+      });
+
+      var config = {
+        method: "put",
+        url: "/api/matches",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      axios(config)
+        .then(function(response) {
+          console.log(JSON.stringify(response.data));
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    registerHost() {
+      let boardString = "";
+      for (let i = 0; i < this.width * this.width; ++i) {
+        if (this.userSquares[i]) {
+          boardString += this.userSquares[i].shipIndex;
+        } else {
+          boardString += "w";
+        }
+      }
+      var axios = require("axios");
+      var data = JSON.stringify({
+        LobbyId: this.$route.params.lobby_id,
+        HostId: window.localStorage.getItem("playerId"),
+        HostBoard: boardString,
+        IsHostTurn: true,
+      });
+
+      var config = {
+        method: "post",
+        url: "/api/matches",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      axios(config)
+        .then(function(response) {
+          console.log(JSON.stringify(response.data));
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
     isGuest() {
       var axios = require("axios");
 
@@ -160,25 +324,72 @@ export default {
         .then((response) => {
           if (!response.data.isOver && response.data.guest) {
             this.modalLobbyId = this.$route.params.lobby_id;
+            this.getOpponentNameAsGuest(response.data.host);
           }
         })
         .catch(function(error) {
           console.log(error);
         });
     },
+    getOpponentNameAsGuest(hostId) {
+      var axios = require("axios");
+
+      var config = {
+        method: "get",
+        url: "/api/players/" + hostId,
+        headers: {},
+      };
+
+      axios(config)
+        .then((response) => {
+          this.opponentName = response.data.nickname;
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
     attackEnemy(index) {
-      if (this.hitOn(index)) {
-        this.enemySquares[index] = "hit";
+      if (!this.canGameStart) {
+        this.message = "The game is not started yet.";
+        return;
+      }
+      if (this.isHostTurn && this.isHost) {
+        this.attack(index);
+      } else if (!this.isHostTurn && !this.isHost) {
+        this.attack(index);
       } else {
-        this.enemySquares[index] = "miss";
+        this.message = "It's not your turn.";
       }
     },
-    hitOn(index) {
-      console.log(index);
-      if (Math.random() > 0.5) {
-        return true;
+    attack(index) {
+      var axios = require("axios");
+      var data = {
+        LobbyId: this.$route.params.lobby_id,
+
+        AttackIndex: index,
+      };
+      if (this.isHost) {
+        data.hostId = window.localStorage.getItem("playerId");
+      } else {
+        data.guestId = window.localStorage.getItem("playerId");
       }
-      return false;
+      data = JSON.stringify(data);
+      var config = {
+        method: "put",
+        url: "/api/matches/" + this.$route.params.lobby_id,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      axios(config)
+        .then((response) => {
+          console.log(JSON.stringify(response.data));
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
     },
     removeFromGrid(clickedIndex) {
       let startPoint = this.userSquares[clickedIndex].start;
@@ -250,19 +461,14 @@ export default {
           }
         }
         for (let i = 0; i < this.selectedShip.shipLength; ++i) {
-          this.userSquares[index + i * this.selectedShip.rotation] = {};
-          this.userSquares[index + i * this.selectedShip.rotation].shipName =
-            "taken " + this.selectedShip.name;
-          this.userSquares[
-            index + i * this.selectedShip.rotation
-          ].shipIndex = this.selectedShip.shipIndex;
-          this.userSquares[
-            index + i * this.selectedShip.rotation
-          ].start = index;
+          let cell = {};
+          cell.shipName = "taken " + this.selectedShip.name;
+          cell.shipIndex = this.selectedShip.shipIndex;
+          cell.start = index;
           if (i + 1 < this.selectedShip.shipLength) {
-            this.userSquares[index + i * this.selectedShip.rotation].next =
-              index + (i + 1) * this.selectedShip.rotation;
+            cell.next = index + (i + 1) * this.selectedShip.rotation;
           }
+          this.userSquares[index + i * this.selectedShip.rotation] = cell;
         }
       } else {
         return;

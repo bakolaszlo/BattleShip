@@ -3,15 +3,17 @@ using System;
 using BattleShip.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BattleShip.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211004042842_Migration2")]
+    partial class Migration2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,17 +52,11 @@ namespace BattleShip.Migrations
                     b.Property<string>("GuestBoard")
                         .HasColumnType("text");
 
-                    b.Property<int>("GuestHp")
-                        .HasColumnType("integer");
-
                     b.Property<int>("GuestId")
                         .HasColumnType("integer");
 
                     b.Property<string>("HostBoard")
                         .HasColumnType("text");
-
-                    b.Property<int>("HostHp")
-                        .HasColumnType("integer");
 
                     b.Property<int>("HostId")
                         .HasColumnType("integer");
