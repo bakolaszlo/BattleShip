@@ -36,11 +36,12 @@
     </div>
   </div>
 
-  <div class="hidden-info">
+  <div class="hidden-info" v-if="!canGameStart">
     <button
       class="start"
       v-if="letShipsToSelectFrom.length == 0"
       @click="registerMatch"
+      :disabled="isReadyDisabled"
     >
       I'm Ready
     </button>
@@ -132,6 +133,7 @@ export default {
       canGameStart: false,
       isHostTurn: true,
       opponentName: "opponent",
+      isReadyDisabled: false,
     };
   },
   computed: {
@@ -270,8 +272,9 @@ export default {
       };
 
       axios(config)
-        .then(function(response) {
+        .then((response) => {
           console.log(JSON.stringify(response.data));
+          this.isReadyDisabled = true;
         })
         .catch(function(error) {
           console.log(error);
@@ -306,6 +309,7 @@ export default {
       axios(config)
         .then(function(response) {
           console.log(JSON.stringify(response.data));
+          this.isReadyDisabled = true;
         })
         .catch(function(error) {
           console.log(error);
@@ -392,6 +396,9 @@ export default {
         });
     },
     removeFromGrid(clickedIndex) {
+      if (this.canGameStart) {
+        return;
+      }
       let startPoint = this.userSquares[clickedIndex].start;
       let index = startPoint;
       let shipIndex = this.userSquares[startPoint].shipIndex;
