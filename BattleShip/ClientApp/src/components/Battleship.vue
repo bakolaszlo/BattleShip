@@ -261,7 +261,7 @@ export default {
       });
 
       var config = {
-        method: "put",
+        method: "post",
         url: "/api/matches",
         headers: {
           "Content-Type": "application/json",

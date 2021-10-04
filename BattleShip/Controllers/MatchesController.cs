@@ -179,15 +179,71 @@ namespace BattleShip.Controllers
             return NoContent();
         }
 
-        // POST: api/Matches
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Match>> PostMatch(Match match)
+        public async Task<IActionResult> PostMatch(Match match)
         {
-            _context.Match.Add(match);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var toTest = await _context.Match.FirstAsync(x=> x.LobbyId == match.LobbyId);
+                return await UpdateMatch(match);
+            }
+            catch
+            {
+                _context.Match.Add(match);
+                await _context.SaveChangesAsync();
+            }
 
-            return CreatedAtAction("GetMatch", new { id = match.Id }, match);
+            return Ok();
+        }
+
+        private async Task<IActionResult> UpdateMatch(Match match)
+        {
+            var lobbyId = await _context.Lobby.FindAsync(match.LobbyId);
+            if (lobbyId == null)
+            {
+                return BadRequest("Not found");
+            }
+
+            var originalMatch = await _context.Match.FirstAsync(x => x.LobbyId == match.LobbyId);
+            if (originalMatch == null)
+            {
+                return BadRequest("Match not found");
+            }
+            if (originalMatch.HostId != 0)
+            {
+                originalMatch.GuestId = match.GuestId;
+                originalMatch.GuestBoard = match.GuestBoard;
+                originalMatch.HostHp = 17;
+                originalMatch.GuestHp = 17;
+            }
+            else
+            {
+                originalMatch.HostId = match.HostId;
+                originalMatch.HostBoard = match.HostBoard;
+                originalMatch.HostHp = 17;
+                originalMatch.GuestHp = 17;
+            }
+            originalMatch.IsHostTurn = true;
+            _context.Entry(originalMatch).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                hubContext.Clients.All.SendAsync("bothPlayersAreReady", originalMatch.HostId, originalMatch.GuestId);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!MatchExists(match.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         // DELETE: api/Matches/5
