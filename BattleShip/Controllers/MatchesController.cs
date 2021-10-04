@@ -243,7 +243,7 @@ namespace BattleShip.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // DELETE: api/Matches/5
