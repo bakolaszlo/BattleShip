@@ -1,6 +1,6 @@
 build:
   docker:
     release:
-       dockerfile: Dockerfile
+       dockerfile: Battleship/Dockerfile
        target: builder
-    web: Dockerfile
+    web: Battleship/Dockerfile
