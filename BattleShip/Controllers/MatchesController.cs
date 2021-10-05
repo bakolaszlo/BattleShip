@@ -116,7 +116,7 @@ namespace BattleShip.Controllers
 
             if(originalMatch.IsHostTurn)
             {
-                if (originalMatch.GuestBoard[attack.AttackIndex] != 'w')
+                if (originalMatch.GuestBoard[attack.AttackIndex] != 'w' && originalMatch.GuestBoard[attack.AttackIndex] != 'x')
                 {
                     //emit hit
                     hubContext.Clients.All.SendAsync("hostHitOn", originalMatch.LobbyId,attack.AttackIndex);
@@ -125,12 +125,16 @@ namespace BattleShip.Controllers
                     originalMatch.GuestBoard = new string(toEdit);
                     originalMatch.GuestHp--;
                 }
-                else
+                else if (originalMatch.GuestBoard[attack.AttackIndex] != 'x')
                 {
                     hubContext.Clients.All.SendAsync("hostAttackedOn", originalMatch.LobbyId, attack.AttackIndex);
                     var toEdit = originalMatch.GuestBoard.ToCharArray();
                     toEdit[attack.AttackIndex] = 'x';
                     originalMatch.GuestBoard = new string(toEdit);
+                }
+                else
+                {
+                    hubContext.Clients.All.SendAsync("hostAttackedOn", originalMatch.LobbyId, attack.AttackIndex);
                 }
             }
 
@@ -145,12 +149,16 @@ namespace BattleShip.Controllers
                     originalMatch.HostBoard = new string(toEdit);
                     originalMatch.HostHp--;
                 }
-                else
+                else if (originalMatch.HostBoard[attack.AttackIndex] != 'x')
                 {
                     hubContext.Clients.All.SendAsync("guestAttackedOn", originalMatch.LobbyId, attack.AttackIndex);
                     var toEdit = originalMatch.HostBoard.ToCharArray();
                     toEdit[attack.AttackIndex] = 'x';
                     originalMatch.HostBoard = new string(toEdit);
+                }
+                else
+                {
+                    hubContext.Clients.All.SendAsync("guestAttackedOn", originalMatch.LobbyId, attack.AttackIndex);
                 }
             }
 
