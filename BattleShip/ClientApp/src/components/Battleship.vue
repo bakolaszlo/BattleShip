@@ -140,6 +140,7 @@ export default {
       isReadyDisabled: false,
       isGameWon: false,
       isGameOverB: false,
+      alreadyAttacked: false,
     };
   },
   computed: {
@@ -181,6 +182,7 @@ export default {
       }
       this.isHostTurn = !this.isHostTurn;
       console.log("hostHitOn", this.isHostTurn);
+      this.alreadyAttacked = false;
     });
 
     connection.on("hostAttackedOn", (lobbyId, index) => {
@@ -195,6 +197,7 @@ export default {
       }
       this.isHostTurn = !this.isHostTurn;
       console.log("hostAttackedOn", this.isHostTurn);
+      this.alreadyAttacked = false;
     });
 
     connection.on("guestHitOn", (lobbyId, index) => {
@@ -209,6 +212,7 @@ export default {
       }
       this.isHostTurn = !this.isHostTurn;
       console.log("guestHitOn", this.isHostTurn);
+      this.alreadyAttacked = false;
     });
 
     connection.on("guestAttackedOn", (lobbyId, index) => {
@@ -223,6 +227,7 @@ export default {
       }
       this.isHostTurn = !this.isHostTurn;
       console.log("guestAttackedOn", this.isHostTurn);
+      this.alreadyAttacked = false;
     });
 
     connection.on("winner", (lobbyId, whoWon) => {
@@ -334,7 +339,7 @@ export default {
       };
 
       axios(config)
-        .then(function(response) {
+        .then((response) => {
           console.log(JSON.stringify(response.data));
           this.isReadyDisabled = true;
         })
@@ -384,7 +389,7 @@ export default {
         this.message = "The game is not started yet.";
         return;
       }
-      if (this.isGameWon) {
+      if (this.isGameWon || this.alreadyAttacked) {
         return;
       }
       if (this.isHostTurn && this.isHost) {
@@ -392,7 +397,10 @@ export default {
       } else if (!this.isHostTurn && !this.isHost) {
         this.attack(index);
       } else {
-        this.message = "It's not your turn.";
+        this.message = `It's ${this.opponentName}'s turn.`;
+        setTimeout(() => {
+          this.message = "";
+        }, 2000);
       }
     },
     attack(index) {
@@ -420,6 +428,7 @@ export default {
       axios(config)
         .then((response) => {
           console.log(JSON.stringify(response.data));
+          this.alreadyAttacked = false;
         })
         .catch(function(error) {
           console.log(error);
