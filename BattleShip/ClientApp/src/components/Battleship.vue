@@ -644,6 +644,15 @@ export default {
     width: 100%;
     flex-wrap: wrap;
   }
+  .grid {
+    margin: 2vmin;
+    display: grid;
+    background-color: #0af;
+    grid-template-rows: repeat(10, 8.2vmin);
+    grid-template-columns: repeat(10, 8.2vmin);
+    height: 350px;
+    width: 350px;
+  }
 }
 .destroyer {
   background-color: orange;
