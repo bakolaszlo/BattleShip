@@ -637,6 +637,14 @@ export default {
   height: 40px;
 }
 
+@media only screen and (max-width: 500px) {
+  .container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
 .destroyer {
   background-color: orange;
 }
