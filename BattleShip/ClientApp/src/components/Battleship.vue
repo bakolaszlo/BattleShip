@@ -57,7 +57,7 @@
     </div>
     <div v-else>It's {{ opponentName }} turn!</div>
   </div>
-  <div class="grid-display">
+  <div class="grid-display" v-if="!canGameStart">
     Your ships:
     <div
       v-for="ship in letShipsToSelectFrom"

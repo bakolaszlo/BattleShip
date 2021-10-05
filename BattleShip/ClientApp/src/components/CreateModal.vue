@@ -2,7 +2,7 @@
   <div class="backdrop" @click.self="closeModal">
     <div class="modal-create">
       <p>Enter your Nickname:</p>
-      <input type="text" v-model="nickname" />
+      <input type="text" v-model="nickname" required />
       <button @click="createPlayer">Start Game</button>
     </div>
   </div>
