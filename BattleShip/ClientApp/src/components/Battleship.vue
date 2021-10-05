@@ -404,6 +404,7 @@ export default {
       }
     },
     attack(index) {
+      this.alreadyAttacked = true;
       var axios = require("axios");
       var data = {
         LobbyId: this.$route.params.lobby_id,
@@ -428,7 +429,6 @@ export default {
       axios(config)
         .then((response) => {
           console.log(JSON.stringify(response.data));
-          this.alreadyAttacked = true;
         })
         .catch(function(error) {
           console.log(error);
