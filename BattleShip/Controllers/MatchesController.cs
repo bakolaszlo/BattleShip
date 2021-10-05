@@ -136,7 +136,7 @@ namespace BattleShip.Controllers
 
             if (!originalMatch.IsHostTurn)
             {
-                if (originalMatch.HostBoard[attack.AttackIndex] != 'w')
+                if (originalMatch.HostBoard[attack.AttackIndex] != 'w' && originalMatch.HostBoard[attack.AttackIndex] != 'x' )
                 {
                     //emit hit
                     hubContext.Clients.All.SendAsync("guestHitOn", originalMatch.LobbyId, attack.AttackIndex);
