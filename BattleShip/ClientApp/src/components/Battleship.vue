@@ -428,7 +428,7 @@ export default {
       axios(config)
         .then((response) => {
           console.log(JSON.stringify(response.data));
-          this.alreadyAttacked = false;
+          this.alreadyAttacked = true;
         })
         .catch(function(error) {
           console.log(error);
